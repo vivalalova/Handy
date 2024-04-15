@@ -36,58 +36,33 @@ public struct CodableMacro: ExtensionMacro {
     }
 }
 
-struct Variable {
-    var name: String
-    var isOptional: Bool
-    var type: String
-}
-
 extension CodableMacro: MemberMacro {
     public static func expansion(of node: SwiftSyntax.AttributeSyntax, providingMembersOf declaration: some SwiftSyntax.DeclGroupSyntax, in context: some SwiftSyntaxMacros.MacroExpansionContext) throws -> [SwiftSyntax.DeclSyntax] {
-        let variables = declaration.memberBlock.members
-            .compactMap { member -> Variable? in
-                let variableName = member.decl.as(VariableDeclSyntax.self)?.variableName
-                let isOptional = member.decl.as(VariableDeclSyntax.self)?.isOptional
-                let typeName = member.decl.as(VariableDeclSyntax.self)?.typeName
+        let variables: [VariableDeclSyntax] = declaration.memberBlock.members
+            .compactMap { $0.decl.as(VariableDeclSyntax.self) }
 
-                let yy = member.decl.as(VariableDeclSyntax.self)?.bindings//.compactMap(\.typeAnnotation).first?.type
-                print("ii", yy)
-
-                if variableName == "array" {
-                    let type = member.decl
-                        .as(VariableDeclSyntax.self)?
-                        .bindings
-                        .first?
-                        .as(PatternBindingSyntax.self)?
-                        .typeAnnotation?
-                        .as(TypeAnnotationSyntax.self)?
-                        .type
-
-//                        .as(PatternBindingListSyntax.self)?
-//                        .first?
-//                        .as(PatternBindingSyntax.self)
-//                        .initializer?
-//                        .value
-//                        .as(ArrayExprSyntax.self)
-
-//                    print("ooo", type, type?.as(ArrayTypeSyntax.self))
-//                    print("ooo", typeName)
-                }
-
-                guard let variableName, let typeName, let isOptional else {
-                    return nil
-                }
-
-                return Variable(name: variableName, isOptional: isOptional, type: typeName)
+        let iniiii = variables.compactMap {
+            guard let name = $0.name, let type = $0.type else {
+                return nil
             }
 
-//        print(declaration.memberBlock.members.map(\.decl))
-
-        let initialerA = try InitializerDeclSyntax("init()") {
-//            for (variableName, isOptional, typeName) in variables {
-//                "self.\(raw: variableName) = \(raw: variableName)"
-//            }
+            if let initialValue = $0.initialValue {
+                return "\(name): \(type) = \(initialValue)"
+            } else {
+                return "\(name): \(type) = nil"
+            }
         }
+        .joined(separator: ", ")
+
+        let initialerA = try InitializerDeclSyntax("init(\(raw: iniiii))") {
+            for variable in variables {
+                if let name = variable.name {
+                    "self.\(raw: name) = \(raw: name)"
+                }
+            }
+        }
+        
+        print(declaration.debugDescription)
 
         let initialerC = try InitializerDeclSyntax("init(from decoder: Decoder) throws") {
             """
@@ -96,37 +71,25 @@ extension CodableMacro: MemberMacro {
             """
 
             for variable in variables {
-//                if variable.isOptional == false {
-//                    throw "no optional"
-//                }
-
-                """
-                if let \(raw: variable.name)Value = try? container.decode(\(raw: variable.type).self, forKey: .\(raw: variable.name)) {
-                    self.\(raw: variable.name) = \(raw: variable.name)Value
+                if variable.isOptional == false && variable.hasDefaultValue == false {
+                    throw "make variable optional, or set default value"
                 }
-                """
+
+                if let name = variable.name, let type = variable.type {
+                    """
+                    if let \(raw: name)Value = try? container.decode(\(raw: type).self, forKey: .\(raw: name)) {
+                        self.\(raw: name) = \(raw: name)Value
+                    }
+                    """
+                }
             }
         }
 
         return [
-            // DeclSyntax(initialerA),
+            DeclSyntax(initialerA),
             DeclSyntax(initialerC)
         ]
     }
-
-//    struct Err:Error,CustomStringConvertible {
-//        case
-//    }
 }
 
 extension String: Error {}
-
-protocol MyCodable: Codable {
-    var initialDefaultValue: Self { get }
-}
-
-extension String: MyCodable {
-    var initialDefaultValue: String {
-        ""
-    }
-}

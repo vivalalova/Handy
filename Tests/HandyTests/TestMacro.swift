@@ -13,10 +13,17 @@ final class TestMacro: XCTestCase {
             """
             @Codable
             struct Model {
-                var number: Int?
-                var name = ""
+                var int = 1
+                var intOptional: Int?
+                var double: Double = 1
+                var doubleOptional: Double?
 
-                var array: [Int] = []
+                var string = ""
+                var stringOptional: String?
+
+                var arrayInt: [Int] = [1,2]
+                var arrayIntOptional: [Int]?
+
                 var subModel: SubModel?
 
                 @Codable
@@ -27,13 +34,24 @@ final class TestMacro: XCTestCase {
             """,
             expandedSource: """
             struct Model {
-                var number: Int?
-                var name = ""
+                var int = 1
+                var intOptional: Int?
+                var double: Double = 1
+                var doubleOptional: Double?
 
-                var array: [Int] = []
+                var string = ""
+                var stringOptional: String?
+
+                var arrayInt: [Int] = [1,2]
+                var arrayIntOptional: [Int]?
+
                 var subModel: SubModel?
                 struct SubModel {
                     var none = ""
+
+                    init(none: String = "") {
+                        self.none = none
+                    }
 
                     init(from decoder: Decoder) throws {
                         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -43,16 +61,43 @@ final class TestMacro: XCTestCase {
                     }
                 }
 
+                init(int: Int = 1, intOptional: Int? = nil, double: Double  = 1, doubleOptional: Double? = nil, string: String = "", stringOptional: String? = nil, arrayInt: [Int]  = [1, 2], arrayIntOptional: [Int]? = nil, subModel: SubModel? = nil) {
+                    self.int = int
+                    self.intOptional = intOptional
+                    self.double = double
+                    self.doubleOptional = doubleOptional
+                    self.string = string
+                    self.stringOptional = stringOptional
+                    self.arrayInt = arrayInt
+                    self.arrayIntOptional = arrayIntOptional
+                    self.subModel = subModel
+                }
+
                 init(from decoder: Decoder) throws {
                     let container = try decoder.container(keyedBy: CodingKeys.self)
-                    if let numberValue = try? container.decode(Int?.self, forKey: .number) {
-                        self.number = numberValue
+                    if let intValue = try? container.decode(Int.self, forKey: .int) {
+                        self.int = intValue
                     }
-                    if let nameValue = try? container.decode(String.self, forKey: .name) {
-                        self.name = nameValue
+                    if let intOptionalValue = try? container.decode(Int?.self, forKey: .intOptional) {
+                        self.intOptional = intOptionalValue
                     }
-                    if let arrayValue = try? container.decode([Int] .self, forKey: .array) {
-                        self.array = arrayValue
+                    if let doubleValue = try? container.decode(Double .self, forKey: .double) {
+                        self.double = doubleValue
+                    }
+                    if let doubleOptionalValue = try? container.decode(Double?.self, forKey: .doubleOptional) {
+                        self.doubleOptional = doubleOptionalValue
+                    }
+                    if let stringValue = try? container.decode(String.self, forKey: .string) {
+                        self.string = stringValue
+                    }
+                    if let stringOptionalValue = try? container.decode(String?.self, forKey: .stringOptional) {
+                        self.stringOptional = stringOptionalValue
+                    }
+                    if let arrayIntValue = try? container.decode([Int] .self, forKey: .arrayInt) {
+                        self.arrayInt = arrayIntValue
+                    }
+                    if let arrayIntOptionalValue = try? container.decode([Int]?.self, forKey: .arrayIntOptional) {
+                        self.arrayIntOptional = arrayIntOptionalValue
                     }
                     if let subModelValue = try? container.decode(SubModel?.self, forKey: .subModel) {
                         self.subModel = subModelValue
@@ -69,52 +114,81 @@ final class TestMacro: XCTestCase {
             macros: testMacros
         )
     }
-}
 
-// extension TestMacro {
-//@Codable
-//struct Model {
-//    var number: Int?
-//    var name = ""
-//
-//    var array: [Int] = []
-//    var yyy: [String] = []
-//    var subModel: SubModel?
-//
-//    struct SubModel: Codable {
-//        var none = ""
-//    }
-//}
-//    func testExample() throws {
-//        var model: Model? = Model(number: 1, name: "hihi")
-//
-//        let string = model.toJSONString()
-//
-//        XCTAssertEqual(
-//            string,
-//            """
-//            {"number":1,"name":"hihi"}
-//            """
-//        )
-//
-//        model = Model.model(from: string)
-//
-//        XCTAssertEqual(model?.number, 1)
-//        XCTAssertEqual(model?.name, "hihi")
-//    }
-//
-//    func testTwice() throws {
-//        return
-//
-//        let string = """
-//        {
-//            "number":1
-//        }
-//        """
-//
-//        let model = Model.model(from: string)
-//
-//        XCTAssertEqual(model?.number, 1)
-//        XCTAssertEqual(model?.name, "")
-//    }
-// }
+    func testSimple() throws {
+        assertMacroExpansion(
+            """
+            @Codable
+            struct Model {
+                var int = 1
+                var intOptional: Int?
+                var double: Double = 1
+                var doubleOptional: Double?
+
+                var string = ""
+                var stringOptional: String?
+
+                var arrayInt: [Int] = [1,2]
+                var arrayIntOptional: [Int]?
+            }
+            """,
+            expandedSource: """
+            struct Model {
+                var int = 1
+                var intOptional: Int?
+                var double: Double = 1
+                var doubleOptional: Double?
+
+                var string = ""
+                var stringOptional: String?
+
+                var arrayInt: [Int] = [1,2]
+                var arrayIntOptional: [Int]?
+
+                init(int: Int = 1, intOptional: Int? = nil, double: Double  = 1, doubleOptional: Double? = nil, string: String = "", stringOptional: String? = nil, arrayInt: [Int]  = [1, 2], arrayIntOptional: [Int]? = nil) {
+                    self.int = int
+                    self.intOptional = intOptional
+                    self.double = double
+                    self.doubleOptional = doubleOptional
+                    self.string = string
+                    self.stringOptional = stringOptional
+                    self.arrayInt = arrayInt
+                    self.arrayIntOptional = arrayIntOptional
+                }
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    if let intValue = try? container.decode(Int.self, forKey: .int) {
+                        self.int = intValue
+                    }
+                    if let intOptionalValue = try? container.decode(Int?.self, forKey: .intOptional) {
+                        self.intOptional = intOptionalValue
+                    }
+                    if let doubleValue = try? container.decode(Double .self, forKey: .double) {
+                        self.double = doubleValue
+                    }
+                    if let doubleOptionalValue = try? container.decode(Double?.self, forKey: .doubleOptional) {
+                        self.doubleOptional = doubleOptionalValue
+                    }
+                    if let stringValue = try? container.decode(String.self, forKey: .string) {
+                        self.string = stringValue
+                    }
+                    if let stringOptionalValue = try? container.decode(String?.self, forKey: .stringOptional) {
+                        self.stringOptional = stringOptionalValue
+                    }
+                    if let arrayIntValue = try? container.decode([Int] .self, forKey: .arrayInt) {
+                        self.arrayInt = arrayIntValue
+                    }
+                    if let arrayIntOptionalValue = try? container.decode([Int]?.self, forKey: .arrayIntOptional) {
+                        self.arrayIntOptional = arrayIntOptionalValue
+                    }
+                }
+            }
+
+            extension Model: Codable {
+            }
+            """,
+            macros: testMacros
+        )
+    }
+}
