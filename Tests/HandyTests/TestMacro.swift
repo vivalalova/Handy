@@ -201,7 +201,23 @@ final class TestMacro: XCTestCase {
             }
             """,
             expandedSource: """
+            struct Model {
+                var date: Date?
 
+                init(date: Date? = nil) {
+                    self.date = date
+                }
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    if let dateValue = try? container.decode(Date?.self, forKey: .date) {
+                        self.date = dateValue
+                    }
+                }
+            }
+
+            extension Model: Codable {
+            }
             """,
             macros: testMacros
         )
@@ -212,6 +228,7 @@ final class TestMacro: XCTestCase {
         var date: Date?
     }
 
+    // TODO: failed
     func testDate() throws {
         let model = ModelDate.model(from: """
         {

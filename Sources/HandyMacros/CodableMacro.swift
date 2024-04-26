@@ -1,19 +1,9 @@
 import SwiftSyntax
 import SwiftSyntaxMacros
 
+extension String: Error {}
+
 public struct CodableMacro: ExtensionMacro {
-    struct Err: Error, CustomStringConvertible {
-        var message: String
-
-        init(_ message: String) {
-            self.message = message
-        }
-
-        var description: String {
-            self.message
-        }
-    }
-
     public static func expansion(of node: AttributeSyntax, attachedTo declaration: some DeclGroupSyntax, providingExtensionsOf type: some TypeSyntaxProtocol, conformingTo protocols: [TypeSyntax], in context: some MacroExpansionContext) throws -> [ExtensionDeclSyntax] {
         let inheritedTypes: InheritedTypeListSyntax? =
             if let declaration = declaration.as(StructDeclSyntax.self) {
@@ -21,7 +11,7 @@ public struct CodableMacro: ExtensionMacro {
             } else if let declaration = declaration.as(ClassDeclSyntax.self) {
                 declaration.inheritanceClause?.inheritedTypes
             } else {
-                throw Err("use @Codable in `struct` or `class`")
+                throw "use @Codable in `struct` or `class`"
             }
 
         if inheritedTypes?.contains(where: { inherited in inherited.type.trimmedDescription == "Codable" }) != true {
@@ -89,5 +79,3 @@ extension CodableMacro: MemberMacro {
         ]
     }
 }
-
-extension String: Error {}
