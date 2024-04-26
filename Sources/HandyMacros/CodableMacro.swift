@@ -24,15 +24,15 @@ public struct CodableMacro: ExtensionMacro {
                 throw Err("use @Codable in `struct` or `class`")
             }
 
-        guard inheritedTypes?.contains(where: { inherited in inherited.type.trimmedDescription == "Codable" }) != true else {
-            return []
+        if inheritedTypes?.contains(where: { inherited in inherited.type.trimmedDescription == "Codable" }) != true {
+            let ext: DeclSyntax = """
+            extension \(type.trimmed): Codable { }
+            """
+
+            return [ext.cast(ExtensionDeclSyntax.self)]
         }
 
-        let ext: DeclSyntax = """
-        extension \(type.trimmed): Codable { }
-        """
-
-        return [ext.cast(ExtensionDeclSyntax.self)]
+        return []
     }
 }
 
@@ -41,7 +41,7 @@ extension CodableMacro: MemberMacro {
         let variables: [VariableDeclSyntax] = declaration.memberBlock.members
             .compactMap { $0.decl.as(VariableDeclSyntax.self) }
 
-        let iniiii = variables.compactMap {
+        let initialVariables = variables.compactMap {
             guard let name = $0.name, let type = $0.type else {
                 return nil
             }
@@ -54,15 +54,13 @@ extension CodableMacro: MemberMacro {
         }
         .joined(separator: ", ")
 
-        let initialerA = try InitializerDeclSyntax("init(\(raw: iniiii))") {
+        let initialerA = try InitializerDeclSyntax("init(\(raw: initialVariables))") {
             for variable in variables {
                 if let name = variable.name {
                     "self.\(raw: name) = \(raw: name)"
                 }
             }
         }
-        
-        print(declaration.debugDescription)
 
         let initialerC = try InitializerDeclSyntax("init(from decoder: Decoder) throws") {
             """

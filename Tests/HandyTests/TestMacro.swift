@@ -191,4 +191,34 @@ final class TestMacro: XCTestCase {
             macros: testMacros
         )
     }
+
+    func testError() throws {
+        assertMacroExpansion(
+            """
+            @Codable
+            struct Model {
+                var date: Date?
+            }
+            """,
+            expandedSource: """
+
+            """,
+            macros: testMacros
+        )
+    }
+
+    @Codable
+    struct ModelDate: Codable {
+        var date: Date?
+    }
+
+    func testDate() throws {
+        let model = ModelDate.model(from: """
+        {
+            "date": 1713857685
+        }
+        """)
+
+        XCTAssertEqual(model?.date, Date(timeIntervalSince1970: 1_713_857_685))
+    }
 }
