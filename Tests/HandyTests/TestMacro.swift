@@ -8,7 +8,7 @@ struct Model0: Codable {
 }
 
 final class TestMacro: XCTestCase {
-    func testOOOO() throws {
+    func testM() throws {
         assertMacroExpansion(
             """
             @Codable

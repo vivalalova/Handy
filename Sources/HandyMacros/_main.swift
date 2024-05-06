@@ -16,6 +16,7 @@ struct TestMacroPlugin: CompilerPlugin {
         AddAsyncMacro.self,
         StringifyMacro.self,
 
-        CodableMacro.self
+        CodableMacro.self,
+        AddDependencyKeyMacro.self
     ]
 }

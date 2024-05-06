@@ -14,7 +14,8 @@ let package = Package(
     ],
     dependencies: [
         // Depend on the Swift 5.9 release of SwiftSyntax
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0")
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.2.0")
     ],
     targets: [
         .macro(
@@ -25,7 +26,10 @@ let package = Package(
             ]
         ),
 
-        .target(name: "Handy", dependencies: ["HandyMacros"]),
+        .target(name: "Handy", dependencies: [
+            "HandyMacros",
+            .product(name: "Dependencies", package: "swift-dependencies")
+        ]),
 
         .executableTarget(name: "HandyClient", dependencies: ["Handy"]),
 
