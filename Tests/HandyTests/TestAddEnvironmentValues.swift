@@ -16,32 +16,32 @@ final class TestAddEnvironmentValues: XCTestCase {
         assertMacroExpansion(
             """
             @AddEnvironmentKey
-            private struct Foo {
-                static let defaultValue = 1
+            struct Foo {
+                static let defaultValue: Double = 1
             }
 
             """,
             expandedSource: """
-            private struct Foo {
-                static let defaultValue = 1
+            struct Foo {
+                static let defaultValue: Double = 1
+            }
+
+            extension Foo: EnvironmentKey {
             }
 
             extension EnvironmentValues {
-                var foo: Foo {
-                    get {
-                        self [Foo.self]
-                    }
-                    set {
-                        self [Foo.self] = newValue
-                    }
+                var foo: Double {
+                    get { self[Foo.self] }
+                    set { self[Foo.self] = newValue }
                 }
             }
 
             extension View {
-                func foo(_ foo: Foo) -> some View {
-                    environment(\\.foo, foo)
+                func foo(_ value: Double) -> some View {
+                    environment(\\.foo, value)
                 }
             }
+
             """,
             macros: testMacros
         )
