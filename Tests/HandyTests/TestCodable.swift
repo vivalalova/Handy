@@ -3,10 +3,6 @@ import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
 
-struct Model0: Codable {
-    var name = ""
-}
-
 final class TestMacro: XCTestCase {
     func testM() throws {
         assertMacroExpansion(
@@ -217,6 +213,30 @@ final class TestMacro: XCTestCase {
             }
 
             extension Model: Codable {
+            }
+            """,
+            macros: testMacros
+        )
+    }
+    
+    
+    func testExtension() throws {
+        assertMacroExpansion(
+            """
+            @Codable
+            extension CLLocationCoordinate2D {}
+            """,
+            expandedSource: """
+            extension CLLocationCoordinate2D {
+
+                init() {
+                }
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                }}
+
+            extension CLLocationCoordinate2D: Codable {
             }
             """,
             macros: testMacros

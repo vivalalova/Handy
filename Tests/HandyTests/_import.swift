@@ -16,5 +16,6 @@ import HandyMacros
 let testMacros: [String: Macro.Type] = [
     "stringify": StringifyMacro.self,
     "Codable": CodableMacro.self,
-    "AddDependencyKey": AddDependencyKeyMacro.self
+    "AddDependencyKey": AddDependencyKeyMacro.self,
+    "AddEnvironmentKey": AddEnvironmentKeyMacro.self
 ]

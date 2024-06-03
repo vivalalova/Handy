@@ -10,6 +10,9 @@ public struct CodableMacro: ExtensionMacro {
                 declaration.inheritanceClause?.inheritedTypes
             } else if let declaration = declaration.as(ClassDeclSyntax.self) {
                 declaration.inheritanceClause?.inheritedTypes
+            } else if let declaration = declaration.as(ExtensionDeclSyntax.self) {
+                // needs to reflection
+                declaration.inheritanceClause?.inheritedTypes
             } else {
                 throw "use @Codable in `struct` or `class`"
             }
